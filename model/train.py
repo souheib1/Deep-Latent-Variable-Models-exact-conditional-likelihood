@@ -59,7 +59,7 @@ def train_VAE(model, train_loader, test_loader, beta, criteration = loss_vae,
         plt.legend()
         model_name = "VAE_MNIST_zdim_" + str(latent_dim)+"_epochs_"+str(epochs)
         plt.savefig(saving_path+ 'loss_'+model_name+'.png')
-        plt.show()
+        #plt.show()
 
     # Lists to store loss history for plotting
     train_loss_history = []
@@ -106,6 +106,12 @@ if __name__ == "__main__":
                         default=16, 
                         help='Dimension of the latent space')
     
+    parser.add_argument('--dataset', 
+                    type=str, 
+                    default="MNIST", 
+                    help='Dataset for the training')
+        
+    
     parser.add_argument('--beta', 
                         type=float, 
                         default=1.0, 
@@ -113,7 +119,7 @@ if __name__ == "__main__":
     
     parser.add_argument('--epochs', 
                         type=int, 
-                        default=50, 
+                        default=55, 
                         help='number of epochs for the training')
     
     parser.add_argument('--input_size', 
@@ -126,46 +132,71 @@ if __name__ == "__main__":
                         default='./model_weights/', 
                         help='path to save the model')
 
+
     args = parser.parse_args()
     beta = args.beta
     latent_dim = args.latent_dim
     epochs = args.epochs
     input_size = args.input_size
     saving_path = args.saving_path
+    dataset = args.dataset
 
+    print("dataset set to ",dataset)
     print("latent_dim set to ",latent_dim)
     print("beta set to ",beta)
     print("epochs set to ",epochs)
     print("input size set to ",input_size)
     print("saving_path set to ",saving_path)
+    
 
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
     batch_size = 128
     model = VAE().to(device)
      
     # Define a transform to preprocess the data
-    transform = transforms.Compose([transforms.ToTensor()])
-
-    # Load the MNIST dataset
-    train_dataset = torchvision.datasets.MNIST(root='./mnist_data', 
-                                               train=True, 
-                                               transform=transform, 
-                                               download=True)
+    transform = transforms.Compose([
+    transforms.Resize((28, 28)),
+    transforms.ToTensor()
+    ])
     
-    test_dataset = torchvision.datasets.MNIST(root='./mnist_data', 
-                                              train=False, 
-                                              transform=transform, 
-                                              download=True)
+    if dataset.upper() == "MNIST" :
+        # Load the MNIST dataset
+        train_dataset = torchvision.datasets.MNIST(root='./mnist_data', 
+                                                train=True, 
+                                                transform=transform, 
+                                                download=True)
+        
+        test_dataset = torchvision.datasets.MNIST(root='./mnist_data', 
+                                                train=False, 
+                                                transform=transform, 
+                                                download=True)
+    elif dataset.upper() == "OMNIGLOT" : 
+        omniglot_dataset = torchvision.datasets.Omniglot(root='./omniglot_data',
+                                                  background=True,
+                                                  transform=transform,
+                                                  download=True)
 
-    # Create data loaders to handle batch processing
-    batch_size = 128
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
-                                               batch_size=batch_size, 
-                                               shuffle=True)
-    
-    test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
-                                              batch_size=batch_size, 
-                                              shuffle=False)
+        # Split the dataset into training and testing sets
+        train_size = int(0.8 * len(omniglot_dataset))
+        test_size = len(omniglot_dataset) - train_size
+        train_dataset, test_dataset = torch.utils.data.random_split(omniglot_dataset, [train_size, test_size])
+
+        # Define batch size
+        batch_size = 128
+
+        # Create data loaders
+        train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                                batch_size=batch_size,
+                                                shuffle=True)
+
+        test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                                batch_size=batch_size,
+                                                shuffle=False)
+
+    else :
+        assert False, "Invalid dataset. Supported datasets are 'MNIST' and 'OMNIGLOT'."
+        
+
 
     model = train_VAE(model, 
                       beta=beta,
