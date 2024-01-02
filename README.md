@@ -4,7 +4,7 @@ Missing data imputation using the exact conditional likelihood of DLVM
 
 
 ## References
-
+```
 @misc{mattei2018leveraging,
       title={Leveraging the Exact Likelihood of Deep Latent Variable Models}, 
       author={Pierre-Alexandre Mattei and Jes Frellsen},
@@ -22,3 +22,4 @@ Missing data imputation using the exact conditional likelihood of DLVM
       archivePrefix={arXiv},
       primaryClass={stat.ML}
 }
+```
