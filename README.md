@@ -1,4 +1,4 @@
-# Deep Latent Variable Models exact conditional likelihood
+# Deep Latent Variable Models: Exact Likelihood
 
 Missing data imputation using the exact conditional likelihood of DLVM
 
