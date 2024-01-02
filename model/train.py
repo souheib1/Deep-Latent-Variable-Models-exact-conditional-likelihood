@@ -172,12 +172,12 @@ if __name__ == "__main__":
                                                 download=True)
     elif dataset.upper() == "OMNIGLOT" : 
         omniglot_dataset = torchvision.datasets.Omniglot(root='./omniglot_data',
-                                                  background=True,
+                                                  background=False,
                                                   transform=transform,
                                                   download=True)
 
         # Split the dataset into training and testing sets
-        train_size = int(0.8 * len(omniglot_dataset))
+        train_size = int(0.7 * len(omniglot_dataset))
         test_size = len(omniglot_dataset) - train_size
         train_dataset, test_dataset = torch.utils.data.random_split(omniglot_dataset, [train_size, test_size])
 
