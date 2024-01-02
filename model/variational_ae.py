@@ -1,12 +1,6 @@
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
-import torchvision
-from torch.autograd import Variable
-import torch.utils.data as data_utils 
-from torchvision import datasets, transforms
 
 class VAE(nn.Module):
     
