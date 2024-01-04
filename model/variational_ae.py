@@ -13,6 +13,7 @@ class VAE(nn.Module):
         self.latent_dim = latent_dim
         self.input_size = input_size
         self.beta = beta
+        # self.loss_vae = loss_vae()
         # Calculate the number of output features after encoder convolutions
     
         self.encoder_output_size = self.calculate_encoder_output_size()
@@ -88,11 +89,13 @@ class VAE(nn.Module):
     
     
 def KL_divergence(z_mean, z_log_var):
-    loss = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp())
+    #loss = -0.5 * torch.sum(1 + z_log_var - z_mean.pow(2) - z_log_var.exp())
+    loss = -0.5 * torch.mean(1 + z_log_var - z_mean.pow(2) - z_log_var.exp())
     return loss
 
 def log_likelihood(x, reconstruction):
-    loss = nn.BCELoss(reduction='sum')
+    #loss = nn.BCELoss(reduction='sum')
+    loss = nn.BCELoss(reduction='mean')
     return loss(reconstruction, x)
 
 def loss_vae(beta, original, z_mean, z_log_var, reconstructed):

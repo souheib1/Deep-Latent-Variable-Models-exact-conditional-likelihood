@@ -42,15 +42,15 @@ if __name__ == "__main__":
     plot_generated_samples(generated_samples,
                            save_path='results/')
     
-    model2 = VAE()
-    model.load_state_dict(torch.load('model_weights/VAE_OMNIGLOT_zdim_16_epochs_55.pth'))
-    model.eval()
+    model2 = VAE(input_size=128)
+    model2.load_state_dict(torch.load('model_weights/VAE_OMNIGLOT_zdim_16_epochs_40.pth'))
+    model2.eval()
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    model.to(device)
+    model2.to(device)
 
     # Generate and plot samples
     num_samples = 10  
-    generated_samples = generate_samples(model, 
+    generated_samples = generate_samples(model2, 
                                          num_samples,
                                          latent_dim=16,
                                          device=device)

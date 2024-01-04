@@ -151,27 +151,33 @@ if __name__ == "__main__":
 
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
     batch_size = 128
-    model = VAE().to(device)
+    model = VAE(input_size=input_size).to(device)
      
     # Define a transform to preprocess the data
     transform = transforms.Compose([
-    transforms.Resize((28, 28)),
+    #transforms.Resize((28, 28)),
     transforms.ToTensor()
     ])
     
     if dataset.upper() == "MNIST" :
         # Load the MNIST dataset
-        train_dataset = torchvision.datasets.MNIST(root='./mnist_data', 
+        train_dataset = torchvision.datasets.MNIST(root='../datasets/mnist_data', 
                                                 train=True, 
                                                 transform=transform, 
                                                 download=True)
         
-        test_dataset = torchvision.datasets.MNIST(root='./mnist_data', 
+        test_dataset = torchvision.datasets.MNIST(root='../datasets/mnist_data', 
                                                 train=False, 
                                                 transform=transform, 
                                                 download=True)
     elif dataset.upper() == "OMNIGLOT" : 
-        omniglot_dataset = torchvision.datasets.Omniglot(root='./omniglot_data',
+        transform = transforms.Compose([
+            transforms.Resize((128, 128)),
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: 1-x)
+            ])
+        
+        omniglot_dataset = torchvision.datasets.Omniglot(root='../datasets/omniglot_data',
                                                   background=False,
                                                   transform=transform,
                                                   download=True)
