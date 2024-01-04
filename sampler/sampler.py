@@ -1,7 +1,6 @@
 import torch
-import torch.nn.functional as F
-from torch.distributions import MultivariateNormal
 from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score
 from variational_ae import loss_vae
 class Sampler:
 

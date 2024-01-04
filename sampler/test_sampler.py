@@ -3,7 +3,6 @@ import torchvision
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import f1_score
 from torchvision import datasets, transforms
 from sampler import Sampler
 from variational_ae import VAE
@@ -46,7 +45,7 @@ def simulate_missing_data(image,fraction,missing_type,input_size=28):
     return imputed_image,pixel_indices
 
     
-def run_sampling(sampling_algorithm, vae_model, test_dataset, scenarios, save_path="./results/", T=100):
+def run_sampling(sampling_algorithm, vae_model, test_dataset, scenarios, save_path="./results/", T=100,input_size=28):
     """
     Run sampling for different missing data scenarios using the specified sampling algorithm.
 
@@ -74,13 +73,22 @@ def run_sampling(sampling_algorithm, vae_model, test_dataset, scenarios, save_pa
             image, _ = test_dataset[i]
             image = image.unsqueeze(0)
 
-            noisy_image, indices_to_remove = simulate_missing_data(image, fraction, missing_type)
+            noisy_image, indices_to_remove = simulate_missing_data(image, 
+                                                                   fraction, 
+                                                                   missing_type, 
+                                                                   input_size=input_size)
 
             # Convert to binary
             binary_image = (image >= 0.5).float()
 
             # Create VaeSampler instance
-            sampler = Sampler(vae_model, image, noisy_image, indices_to_remove, T=T, sampling_algorithm=sampling_algorithm)
+            sampler = Sampler(vae_model, 
+                              image, 
+                              noisy_image, 
+                              indices_to_remove, 
+                              T=T, 
+                              sampling_algorithm=sampling_algorithm,
+                              input_size=input_size)
 
             # Perform sampling
             imputed_image, f1_score_values = sampler.sample()
@@ -135,6 +143,8 @@ def compare_sampling_algorithms(vae_model, test_dataset, scenarios, save_path=".
         save_path (str): Path to save the results.
         T (int): Number of sampling iterations.
     """
+    random_scores_pg = {}
+    random_scores_mwg = {}
     for scenario in scenarios:
         fraction = scenario['fraction']
         missing_type = scenario['type']
@@ -148,7 +158,7 @@ def compare_sampling_algorithms(vae_model, test_dataset, scenarios, save_path=".
         f1_scores_pg = []
         f1_scores_mwg = []
 
-        for i in range(1,6):
+        for i in range(100,106):
             image, _ = test_dataset[i]
             image = image.unsqueeze(0)
 
@@ -219,6 +229,21 @@ def compare_sampling_algorithms(vae_model, test_dataset, scenarios, save_path=".
         plt.tight_layout()
         plt.savefig(save_path + "comparison_" + str(int(fraction * 100)) + "_" + missing_type + ".PNG")
 
+        mean_f1_score_pg = np.mean(f1_scores_pg)
+        mean_f1_score_mwg = np.mean(f1_scores_mwg)
+        if missing_type == "random":
+            random_scores_pg[fraction * 100] = mean_f1_score_pg
+            random_scores_mwg[fraction * 100] = mean_f1_score_mwg
+    
+    plt.figure(figsize=(10, 5))
+    plt.plot(random_scores_pg.keys(), random_scores_pg.values(), label="Pseudo-gibbs", linestyle="--")
+    plt.plot(random_scores_mwg.keys(), random_scores_mwg.values(), label="Metroplis-Within-Gibbs", linestyle="-.")
+    plt.xlabel("Pourcentage of missing data")
+    plt.ylabel("Average F1-score")
+    plt.title(f"F1-score evaluation")
+    plt.legend()
+    plt.savefig(save_path + "F1evolution.PNG")
+
 
 if __name__ == "__main__":
 
@@ -227,11 +252,18 @@ if __name__ == "__main__":
                     type=str, 
                     default="MNIST", 
                     help='Dataset for the training')
+    
+    parser.add_argument('--input_size', 
+                    type=int, 
+                    default=28, 
+                    help='size in pixels of the input images')
+        
     args = parser.parse_args()
     dataset = args.dataset
+    input_size = args.input_size
     
     
-    vae_model = VAE()  # Replace with your actual trained VAE model
+    vae_model = VAE(input_size=input_size)  # Replace with your actual trained VAE model
 
     if dataset.upper() == "MNIST" :
         transform = transforms.Compose([transforms.ToTensor()])
@@ -242,10 +274,12 @@ if __name__ == "__main__":
         vae_model.load_state_dict(torch.load('../model/model_weights/VAE_MNIST_zdim_16_epochs_50.pth'))
     
     elif dataset.upper() == "OMNIGLOT" : 
-            transform = transforms.Compose([transforms.Resize((28, 28)),
-                                            transforms.ToTensor()])
+            transform = transforms.Compose([transforms.Resize((input_size, input_size)),
+                                            transforms.ToTensor(),
+                                           transforms.Lambda(lambda x: 1-x)
+                                           ])
             omniglot_dataset = torchvision.datasets.Omniglot(root='../datasets/omniglot_data',
-                                                  background=True,
+                                                  background=False,
                                                   transform=transform,
                                                   download=True)
 
@@ -259,11 +293,11 @@ if __name__ == "__main__":
             test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                     batch_size=batch_size,
                                                     shuffle=False)
-            vae_model.load_state_dict(torch.load('../model/model_weights/VAE_OMNIGLOT_zdim_16_epochs_55.pth'))
+            vae_model.load_state_dict(torch.load('../model/model_weights/VAE_OMNIGLOT_zdim_16_epochs_40.pth'))
     
     vae_model.eval()
         
-    # Define the missing data scenarios
+    # Define the missing data scenarios 
     missing_data_scenarios = [
         {'fraction': 0.4, 'type': 'random'},
         {'fraction': 0.5, 'type': 'random'},
@@ -274,23 +308,26 @@ if __name__ == "__main__":
         {'fraction': 0.5, 'type': 'half_bottom'},
     ]
 
-    print("run_sampling with pseudo_gibbs")
-    run_sampling(sampling_algorithm='pseudo_gibbs',
-                vae_model=vae_model,
-                test_dataset=test_dataset,
-                scenarios=missing_data_scenarios,
-                T=500)
+    # print("run_sampling with pseudo_gibbs")
+    # run_sampling(sampling_algorithm='pseudo_gibbs',
+    #             vae_model=vae_model,
+    #             test_dataset=test_dataset,
+    #             scenarios=missing_data_scenarios,
+    #             T=500,
+    #             input_size=input_size)
 
-    print("run_sampling with metropolis_within_gibbs")
-    run_sampling(sampling_algorithm='metropolis_within_gibbs',
-                vae_model=vae_model,
-                test_dataset=test_dataset,
-                scenarios=missing_data_scenarios,
-                T=500)
+    # print("run_sampling with metropolis_within_gibbs")
+    # run_sampling(sampling_algorithm='metropolis_within_gibbs',
+    #             vae_model=vae_model,
+    #             test_dataset=test_dataset,
+    #             scenarios=missing_data_scenarios,
+    #             T=500,
+    #             input_size=input_size)
 
     print("Compare the methods")
     compare_sampling_algorithms(vae_model=vae_model, 
                                 test_dataset=test_dataset, 
                                 scenarios=missing_data_scenarios, 
                                 save_path="./results/", 
-                                T=500)
+                                T=500,
+                                input_size=input_size)
