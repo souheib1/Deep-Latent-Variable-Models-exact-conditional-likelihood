@@ -79,10 +79,10 @@ class Sampler:
     def log_prob(self, x, z):
         decoded_z = self.vae_model.decode(z)
         z_mean, z_log_var, reconstruction = self.vae_model(decoded_z)
-        return -loss_vae(beta=1.0,
+        return -torch.log(loss_vae(beta=1.0,
                                         original=x,
                                         z_mean=z_mean,
                                         z_log_var=z_log_var,
-                                        reconstructed=decoded_z)
+                                        reconstructed=decoded_z))
 
   
