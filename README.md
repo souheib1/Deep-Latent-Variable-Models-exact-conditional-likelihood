@@ -14,10 +14,11 @@ We're comparing the sampling methods to fill in missing parts of images by looki
    
 ![comparison_50_random](https://github.com/souheib1/Deep-Latent-Variable-Models-exact-conditional-likelihood/assets/73786465/39952121-1a21-4dc5-8605-ac28b342be64)
 
-Here we show some results about the performance of the imputation for different pourcentages of missing data and for different initialisations of the missing parts . 
+Here we show some results about the imputation performance for different percentages of missing data. 
 
 
 ![F1evolution-Top](https://github.com/souheib1/Deep-Latent-Variable-Models-exact-conditional-likelihood/assets/73786465/d8c4b090-3ede-48d4-905e-a827e0cad99f)
+Finally, we challenge the model by different initializations of the missing parts and we explore the the imputation performance. 
 
 ![Initialization](https://github.com/souheib1/Deep-Latent-Variable-Models-exact-conditional-likelihood/assets/73786465/9ff0cbf6-2dc4-493c-bd65-21eefe3570ac)
 
