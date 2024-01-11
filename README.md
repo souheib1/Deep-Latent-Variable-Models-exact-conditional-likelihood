@@ -19,6 +19,8 @@ Here we show some results about the performance of the imputation for different 
 
 ![F1evolution-Top](https://github.com/souheib1/Deep-Latent-Variable-Models-exact-conditional-likelihood/assets/73786465/d8c4b090-3ede-48d4-905e-a827e0cad99f)
 
+![Initialization](https://github.com/souheib1/Deep-Latent-Variable-Models-exact-conditional-likelihood/assets/73786465/9ff0cbf6-2dc4-493c-bd65-21eefe3570ac)
+
 ![Noise_comparaison](https://github.com/souheib1/Deep-Latent-Variable-Models-exact-conditional-likelihood/assets/73786465/4efce873-5bca-4071-adc3-45ca86a27074)
 
 
